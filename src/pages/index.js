@@ -5,6 +5,8 @@ export default function Home() {
   const [minhaCarteira, setMinhaCarteira] = useState("");
   const [saldo, setSaldo] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [enderecoDestino, setEnderecoDestino] = useState("");
+  const [quantidade, setQuantidade] = useState("");
   
   async function btnConnectClick() {
      if (!window.ethereum) return setMensagem("Metamask não detectado");
@@ -26,8 +28,24 @@ export default function Home() {
      console.log(rede);
      setMensagem('');
   }
-  return (
+
+  async function btnTransferenciaClick() {
+    setMensagem(`Tentando transferir ${quantidade} ETHs para ${enderecoDestino}...`);
     
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    const transacao = await signer.sendTransaction({
+      to: enderecoDestino,
+      value: ethers.parseEther(quantidade)
+    });
+    await transacao.wait();
+
+    setMensagem("Tx HASH: " + transacao.hash);
+  }
+  
+  return (
+    <>
         <div>
           <p>
             Minha Carteira: <input type="text" onChange={evt => setMinhaCarteira(evt.target.value)} />
@@ -37,10 +55,24 @@ export default function Home() {
             Saldo (ETH): {saldo}
           </p>
           <br />
+        </div>
+        <div>
+           <p>
+             Conta Destino: <input type="text" onChange={evt=>setEnderecoDestino(evt.target.value)}></input>
+           </p>
+           <p>
+             Quantidade(ETH): <input type="text" onChange={evt=>setQuantidade(evt.target.value)}></input>
+           </p>
+           <p>
+            <input type="button" value="Transferir" onClick={btnTransferenciaClick}></input>
+           </p>
           <p>
+            <br />
             {mensagem}
           </p>
         </div>
+    </>
+
     
   );
 }
